@@ -1,0 +1,50 @@
+font_path:
+ - C:/P-ROC/shared/dmd
+config_path:
+ - C:/P-ROC/shared/config
+pinproc_class: procgame.fakepinproc.FakePinPROC
+log_destination:
+ - C:/P-ROC/pyprocgame-master/log.text
+vp_game_map_file: /P-ROC/shared/config/vp_game_map.yaml
+
+keyboard_switch_map:
+        1: startButton
+        z: flipperLwL
+        x: flipperLwR
+        t: outhole
+        2: leftTrough
+        3: leftRamp 
+        4: rampDiverted
+        5: cellarRamp
+        6: rightOrbit
+        7: leftRampFull
+        8: rightE
+        9: vukswitch
+        0: henriettaSwitch
+        t: Target1
+        y: Target2
+        u: Target3
+        i: Target4
+        o: Target5
+        p: Target6
+        a: handDrop1
+        s: handDrop2
+        d: handDrop3
+        f: handDrop4
+        j: rampDiverted
+        v: down
+        b: up
+        n: enter
+        m: exit
+# all of this is for the hdDMD
+use_virtual_dmd_only: True
+dmd_grid_path: C:\P-ROC\FullColor-hdDMD-pyprocgame-master\
+dmd_dots_w: 128
+dmd_dots_h: 32
+dmd_X: 5
+dmd_Y: 5
+dmd_dot_filter: True
+dmd_no_frame: True
+dmd_fullscreen: False
+desktop_dmd_scale: 3
+dmd_framerate: 15
