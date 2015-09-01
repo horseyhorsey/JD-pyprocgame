@@ -10,6 +10,7 @@ import random
 
 curr_file_path = os.path.dirname(os.path.abspath( __file__ ))
 voice_path = curr_file_path + "/sound/Voice/shooting_gallery/"
+dmd_path = curr_file_path + "/dmd/"
 
 class ShootingGallery(game.Mode):
 	def __init__(self, game, priority, gallery_filename, cows_filename, scope_filename, cow_mode):
@@ -71,7 +72,7 @@ class ShootingGallery(game.Mode):
 		self.instruction_layer_22 = dmd.TextLayer(128/2, 17, self.game.fonts['07x5'], "center").set_text("Fire buttons shoot")
 		self.intro_layer_2 = dmd.GroupedLayer(128, 32, [self.instruction_layer_21, self.instruction_layer_22])
 
-		anim = dmd.Animation().load("games/jd/dmd/gun_powerup.dmd")
+		anim = dmd.Animation().load(dmd_path + "gun_powerup.dmd")
 		self.anim_layer = dmd.AnimatedLayer(frames=anim.frames, frame_time=5)
 		self.anim_layer.composite_op = 'blacksrc'
 
