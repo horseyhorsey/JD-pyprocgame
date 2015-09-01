@@ -1,1 +1,7 @@
 *.pyc
+/dmd
+/sound
+/obj
+/crash.txt
+/crash.dmp
+/config/game_user_data.yaml

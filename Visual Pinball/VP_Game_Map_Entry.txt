@@ -1,0 +1,4 @@
+jd_l7:
+    path: /../games/JD
+    kls: jd.Game
+    yaml: /../games/JD/jd.yaml
