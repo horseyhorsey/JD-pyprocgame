@@ -160,19 +160,23 @@ jdb2 = 0
  Sub table1_unPaused:Controller.Pause = 0:End Sub
 
 Sub Table1_KeyDown(ByVal KeyCode)
-	If KeyDownHandler(KeyCode) Then Exit Sub
+	'If KeyDownHandler(KeyCode) Then Exit Sub
 	If KeyCode=PlungerKey Then Controller.Switch(12)=1
+	If KeyCode=StartGameKey Then  Controller.Switch(13)=1
     If KeyCode=3 Then Controller.Switch(31)=1
    	If keycode = RightMagnaSave Then Controller.Switch(44) = True ' Super Game        (-)
    	If keycode = LeftMagnaSave Then Controller.Switch(11) = True ' Left Fire Button  (z)
+	If vpmKeyDown(keycode) Then Exit Sub
   End Sub
 
 Sub Table1_KeyUp(ByVal KeyCode)
-	If KeyUpHandler(KeyCode) Then Exit Sub
+	'If KeyUpHandler(KeyCode) Then Exit Sub
 	If KeyCode=PlungerKey Then Controller.Switch(12)=0
+	If KeyCode=StartGameKey Then Controller.Switch(13)=0
     If KeyCode=3 Then Controller.Switch(31)=0
    	If keycode = RightMagnaSave Then Controller.Switch(44) = False ' Super Game        (-)
    	If keycode = LeftMagnaSave Then Controller.Switch(11) = False ' Left Fire Button  (z)
+	If vpmKeyUp(keycode) Then Exit Sub
  End Sub
 
 
