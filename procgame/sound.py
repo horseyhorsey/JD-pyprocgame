@@ -44,6 +44,16 @@ class SoundController(object):
 		if not self.enabled: return
 		mixer.music.stop()
 
+	def pause_music(self):
+		"""Stop the currently-playing music."""
+		if not self.enabled: return
+		mixer.music.pause()
+
+	def unpause_music(self):
+		"""Stop the currently-playing music."""
+		if not self.enabled: return
+		mixer.music.unpause()
+
 	def fadeout_music(self, time_ms = 450):
 		""" """
 		if not self.enabled: return

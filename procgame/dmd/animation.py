@@ -7,9 +7,13 @@ import StringIO
 import time
 import Image
 from procgame.dmd import Frame
+from procgame.dmd import VgaDMD
 from procgame import config
 import logging
 import re
+import colorsys
+import pygame
+import zipfile
 
 try:
 	import Image
@@ -181,7 +185,9 @@ class Animation(object):
 				
 			# Iterate over the provided paths:
 			for path in paths:
-			
+				if (os.path.isfile(path.rstrip('.zip'))):
+					#print("Using unzipped DMD for '" + path + "'")
+					path = path.rstrip('.zip')
 				with open(path, 'rb') as f:
 					# Opening from disk.  It may be a DMD, or it may be another format.
 					# We keep track of the DMD data representation so we can save it to
@@ -189,6 +195,10 @@ class Animation(object):
 					if path.endswith('.dmd'):
 						# Note: Right now we don't cache .dmd files.
 						self.populate_from_dmd_file(f)
+					elif path.endswith('.zip'):
+						z = zipfile.ZipFile(path, "r")
+						data = z.read(z.namelist()[0])    #Read in the first image data
+						self.populate_from_dmd_file(StringIO.StringIO(data))
 					else:
 						logger.info('Loading %s...', path) # Log for images...
 						global warned_cache_disabled
@@ -201,16 +211,16 @@ class Animation(object):
 						self.populate_from_image_file(path, f)
 					
 			# Now use our normal save routine to get the DMD format data:
-			stringio = StringIO.StringIO()
-			self.save_to_dmd_file(stringio)
-			dmd_data = stringio.getvalue()
+			# stringio = StringIO.StringIO()
+			# self.save_to_dmd_file(stringio)
+			# dmd_data = stringio.getvalue()
 		
 			# Finally store the data in the cache:	
 			if animation_cache:
-				print "Storing in the cache: ", key_path
+				#print "Storing in the cache: ", key_path
 				animation_cache.set_at_path(key_path, dmd_data)
 					
-			logger.debug('Loaded "%s" from disk in %0.3fs', key_path, time.time()-t0)
+			# print('Loaded "%s" from disk in %0.3fs', key_path, time.time()-t0)
 			
 		return self
 
@@ -221,8 +231,75 @@ class Animation(object):
 		with open(filename, 'wb') as f:
 			self.save_to_dmd_file(f)
 
+	def save_old(self, filename):
+		"""Saves the animation as a 'traditional' (8bpp) .dmd file at the given location, `filename`."""
+		if self.width == None or self.height == None:
+			raise ValueError, "width and height must be set on Animation before it can be saved."
+		with open(filename, 'wb') as f:
+			self.save_to_old_dmd_file(f)
+
+	def convertImage(src):
+
+		image = src.convert("RGB")
+		(w,h) = image.size
+
+		frame = Frame(w, h)
+		mode = image.mode
+		size = image.size
+		data = image.tostring()
+
+		#assert mode in 'RGB', 'RGBA'
+		surface = pygame.image.fromstring(data, size, mode)
+
+		frame.set_surface(surface)
+
+		return frame
+
+	convertImage = staticmethod(convertImage)
+
+
+	def convertImageToOldDMD(src):
+		pal_image= Image.new("P", (1,1))
+		tuplePal = VgaDMD.get_palette()
+		flatPal = [element for tupl in tuplePal for element in tupl]
+		pal_image.putpalette(flatPal)
+		src_rgb = src.convert("RGB").quantize(palette=pal_image)
+		src_p = src_rgb.convert("P")
+
+		(w,h) = src.size
+		frame = Frame(w, h)
+		for x in range(w):
+			for y in range(h):
+				color = src_p.getpixel((x,y))
+				frame.set_dot(x=x, y=y, value=color)
+		return frame
+	convertImageToOldDMD = staticmethod(convertImageToOldDMD)
 
 	def populate_from_image_file(self, path, f):
+		if not Image:
+			raise RuntimeError, 'Cannot open non-native image types without Python Imaging Library: %s' % (path)
+		
+		src = Image.open(f)
+
+		(w, h) = src.size
+		# print ("conversion of image, sized " + str(w) + "," + str(h))
+
+		if len(self.frames) > 0 and (w != self.width or h != self.height):
+			raise ValueError, "Image sizes must be uniform!  Anim is %dx%d, image is %dx%d" % (w, h, self.width, self.height)
+
+		(self.width, self.height) = (w, h)
+
+		# I'm punting on animated gifs, because they're too slow.  If you coalesce them 
+		# via image magic then they are fast again.
+		if path.endswith('.gif'): 
+			from . import animgif
+			self.frames += animgif.gif_frames(src)
+		else:
+			frame = Animation.convertImage(src)
+
+			self.frames.append(frame)
+
+	def old_populate_from_image_file(self, path, f):
 		
 		if not Image:
 			raise RuntimeError, 'Cannot open non-native image types without Python Imaging Library: %s' % (path)
@@ -267,24 +344,56 @@ class Animation(object):
 	def populate_from_dmd_file(self, f):
 		f.seek(0, os.SEEK_END) # Go to the end of the file to get its length
 		file_length = f.tell()
-		f.seek(4) # Skip over the 4 byte DMD header.
+		## MJO: Don't just skip the header!  Check it.
+		
+		f.seek(0) # Skip over the 4 byte DMD header.
+		dmd_version = struct.unpack("I", f.read(4))[0]
+		dmd_style = 0 # old
+		if(dmd_version == 0x00646D64):
+			# print("old dmd style")
+			pass
+		elif(dmd_version == 0x00DEFACE):
+			# print("full color dmd style")
+			dmd_style = 1
+
 		frame_count = struct.unpack("I", f.read(4))[0]
 		self.width = struct.unpack("I", f.read(4))[0]
 		self.height = struct.unpack("I", f.read(4))[0]
-		if file_length != 16 + self.width * self.height * frame_count:
-			raise ValueError, "File size inconsistent with header information.  Old or incompatible file format?"
-		for frame_index in range(frame_count):
-			str_frame = f.read(self.width * self.height)
-			new_frame = Frame(self.width, self.height)
-			new_frame.set_data(str_frame)
-			self.frames.append(new_frame)
+		if(dmd_style==0):
+			if file_length != 16 + self.width * self.height * frame_count:
+				logging.getLogger('game.dmdcache').warning(f)
+				logging.getLogger('game.dmdcache').warning("expected size = {%d} got {%d}", (16 + self.width * self.height * frame_count), (file_length))
+				raise ValueError, "File size inconsistent with original DMD format header information.  Old or incompatible file format?"
+		elif(dmd_style==1):
+			if file_length != 16 + self.width * self.height * frame_count * 3:
+				logging.getLogger('game.dmdcache').warning(f)
+				raise ValueError, "File size inconsistent with true-color DMD format header information. Old or incompatible file format?"
 
-	def save_to_dmd_file(self, f):
+		for frame_index in range(frame_count):
+			new_frame = Frame(self.width, self.height)
+			if(dmd_style==0):
+				str_frame = f.read(self.width * self.height)
+				new_frame.build_surface_from_8bit_dmd_string(str_frame)
+			elif(dmd_style==1):
+				str_frame = f.read(self.width * self.height * 3)
+				surface = pygame.image.fromstring(str_frame, (self.width, self.height), 'RGB')
+				new_frame.set_surface(surface)
+			self.frames.append(new_frame)
+		
+	def save_to_old_dmd_file(self, f):
 		header = struct.pack("IIII", 0x00646D64, len(self.frames), self.width, self.height)
 		if len(header) != 16:
 			raise ValueError, "Packed size not 16 bytes as expected: %d" % (len(header))
 		f.write(header)
 		for frame in self.frames:
-			f.write(frame.get_data())
+			str1 = ''.join(str(e) for e in frame.font_dots)
+			print("font dots=[" + str1 + "]")
+			f.write(str1)
 
-
+	def save_to_dmd_file(self, f):
+		header = struct.pack("IIII", 0x00DEFACE, len(self.frames), self.width, self.height)
+		if len(header) != 16:
+			raise ValueError, "Packed size not 16 bytes as expected: %d" % (len(header))
+		f.write(header)
+		for frame in self.frames:
+			f.write(frame.get_surface_string())

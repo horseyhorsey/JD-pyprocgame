@@ -32,14 +32,7 @@ voice_path = curr_file_path + "/sound/Voice/attract/"
 voice_high_score_path = curr_file_path + "/sound/Voice/"
 sound_path = curr_file_path + "/sound/FX/"
 music_path = curr_file_path + "/sound/"
-font_tiny7 = dmd.font_named('04B-03-7px.dmd')
-font_jazz18 = dmd.font_named("Jazz18-18px.dmd")
-font_14x10 = dmd.font_named("Font14x10.dmd")
-font_18x12 = dmd.font_named("Font18x12.dmd")
-font_07x4 = dmd.font_named("Font07x4.dmd")
-font_07x5 = dmd.font_named("Font07x5.dmd")
-font_09Bx7 = dmd.font_named("Font09Bx7.dmd")
-splash = curr_file_path + "/dmd/Splash.dmd"
+
 
 lampshow_files = [curr_file_path + "/lamps/attract_show_horiz.lampshow", \
                   curr_file_path + "/lamps/attract_show_vert.lampshow" \
@@ -94,18 +87,18 @@ class Attract(game.Mode):
 			anim = dmd.Animation().load(filename)
 			self.cityscape_layer = dmd.AnimatedLayer(frames=anim.frames, repeat=True, frame_time=1)
 		else:
-			self.cityscape_layer = dmd.TextLayer(128/2, 7, font_jazz18, "center", opaque=True).set_text("CityScape")
+			self.cityscape_layer = dmd.TextLayer(128/2, 7, self.game.font_jazz18, "center", opaque=True).set_text("CityScape")
 
-		self.jd_layer = dmd.TextLayer(128/2, 7, font_jazz18, "center", opaque=True).set_text("Judge Dredd")
+		self.jd_layer = dmd.TextLayer(128/2, 7, self.game.font_jazz18, "center", opaque=True).set_text("Judge Dredd")
 		self.jd_layer.transition = dmd.PushTransition(direction='south')
 
 
-		self.proc_splash_layer = dmd.FrameLayer(opaque=True, frame=dmd.Animation().load(splash).frames[0])
+		self.proc_splash_layer = dmd.FrameLayer(opaque=True, frame=dmd.Animation().load(self.game.splash).frames[0])
 		self.proc_splash_layer.transition = dmd.PushTransition(direction='south')
-		self.pyprocgame_layer = dmd.TextLayer(128/2, 7, font_jazz18, "center", opaque=True).set_text("pyprocgame")
+		self.pyprocgame_layer = dmd.TextLayer(128/2, 7, self.game.font_jazz18, "center", opaque=True).set_text("pyprocgame")
 		self.pyprocgame_layer.transition = dmd.PushTransition(direction='west')
-		self.press_start_layer = dmd.TextLayer(128/2, 7, font_jazz18, "center", opaque=True).set_text("Press Start", seconds=None, blink_frames=1)
-		self.scores_layer = dmd.TextLayer(128/2, 7, font_jazz18, "center", opaque=True).set_text("High Scores")
+		self.press_start_layer = dmd.TextLayer(128/2, 7, self.game.font_jazz18, "center", opaque=True).set_text("Press Start", seconds=None, blink_frames=1)
+		self.scores_layer = dmd.TextLayer(128/2, 7, self.game.font_jazz18, "center", opaque=True).set_text("High Scores")
 		self.scores_layer.transition = dmd.PushTransition(direction='north')
 
 		gen = dmd.MarkupFrameGenerator()
@@ -146,21 +139,21 @@ class Attract(game.Mode):
 			anim = dmd.Animation().load(filename)
 			self.guntech_layer = dmd.AnimatedLayer(frames=anim.frames, repeat=False, frame_time=4)
 		else:
-			self.guntech_layer = dmd.TextLayer(128/2, 7, font_jazz18, "center", opaque=True).set_text("GunTech")
+			self.guntech_layer = dmd.TextLayer(128/2, 7, self.game.font_jazz18, "center", opaque=True).set_text("GunTech")
 
 		filename = curr_file_path + "/dmd/darkjudges_no_bg.dmd"
 		if os.path.isfile(filename):
 			anim = dmd.Animation().load(filename)
 			self.judges_layer = dmd.AnimatedLayer(frames=anim.frames, repeat=True, frame_time=4)
 		else:
-			self.judges_layer = dmd.TextLayer(128/2, 7, font_jazz18, "center", opaque=True).set_text("Judges")
+			self.judges_layer = dmd.TextLayer(128/2, 7, self.game.font_jazz18, "center", opaque=True).set_text("Judges")
 
 		filename = curr_file_path + "/dmd/longwalk.dmd"
 		if os.path.isfile(filename):
 			anim = dmd.Animation().load(filename)
 			self.longwalk_layer = dmd.AnimatedLayer(frames=anim.frames, repeat=False, frame_time=7)
 		else:
-			self.longwalk_layer = dmd.TextLayer(128/2, 7, font_jazz18, "center", opaque=True).set_text("Game Over")
+			self.longwalk_layer = dmd.TextLayer(128/2, 7, self.game.font_jazz18, "center", opaque=True).set_text("Game Over")
 
 		self.pre_game_display()
 
@@ -276,7 +269,7 @@ class Attract(game.Mode):
 			lamp.disable()
 		#self.game.load_settings(settings_template_path, settings_path)
 		del self.game.service_mode
-		self.game.service_mode = procgame.service.ServiceMode(self.game,100,font_tiny7,[self.game.deadworld_test])
+		self.game.service_mode = procgame.service.ServiceMode(self.game,100,self.game.font_tiny7,[self.game.deadworld_test])
 		self.game.modes.add(self.game.service_mode)
 		#self.game.proc.driver_group_disable(5)
 		#pinproc.driver_state_pulse(32, 30)
@@ -416,7 +409,7 @@ class BaseGameMode(game.Mode):
 	"""docstring for AttractMode"""
 	def __init__(self, game):
 		super(BaseGameMode, self).__init__(game, 2)
-		self.tilt = Tilt(self.game, 1000, font_jazz18, font_tiny7, 'tilt', 'slamTilt')
+		self.tilt = Tilt(self.game, 1000, self.game.font_jazz18, self.game.font_tiny7, 'tilt', 'slamTilt')
 		self.flipper_enable_workaround_active = False
 
 	def mode_started(self):
@@ -439,7 +432,7 @@ class BaseGameMode(game.Mode):
 		self.game.enable_flippers(enable=True)
 
 		# Create jd_modes, which handles all of the game rules
-		self.jd_modes = JD_Modes(self.game, 8, font_tiny7, font_jazz18)
+		self.jd_modes = JD_Modes(self.game, 8, self.game.font_tiny7, self.game.font_jazz18)
 
 		# Create mode to check for replay
 		self.replay = procgame.modes.Replay(self.game, 18)
@@ -531,7 +524,7 @@ class BaseGameMode(game.Mode):
 		self.game.update_player_record('JD_MODES', jd_modes_info_record)
 
 		# Create the bonus mode so bonus can be calculated.
-		self.bonus = Bonus(self.game, 8, font_jazz18, font_tiny7)
+		self.bonus = Bonus(self.game, 8, self.game.font_jazz18, self.game.font_tiny7)
 		self.game.modes.add(self.bonus)
 
 		# Only compute bonus if it wasn't tilted away.
@@ -584,7 +577,7 @@ class BaseGameMode(game.Mode):
 	# Allow service mode to be entered during a game.
 	def sw_enter_active(self, sw):
 		del self.game.service_mode
-		self.game.service_mode = procgame.service.ServiceMode(self.game,100,font_tiny7,[self.game.deadworld_test])
+		self.game.service_mode = procgame.service.ServiceMode(self.game,100,self.game.font_tiny7,[self.game.deadworld_test])
 		self.game.modes.add(self.game.service_mode)
 		return True
 
@@ -663,6 +656,15 @@ class Game(game.BasicGame):
 	"""docstring for Game"""
 	def __init__(self):
 		super(Game, self).__init__(pinproc.MachineTypeWPC)
+
+		self.font_tiny7 = dmd.font_named('04B-03-7px.dmd')
+		self.font_jazz18 = dmd.font_named("Jazz18-18px.dmd")
+		self.font_14x10 = dmd.font_named("Font14x10.dmd")
+		self.font_18x12 = dmd.font_named("Font18x12.dmd")
+		self.font_07x4 = dmd.font_named("Font07x4.dmd")
+		self.font_07x5 = dmd.font_named("Font07x5.dmd")
+		self.font_09Bx7 = dmd.font_named("Font09Bx7.dmd")
+		self.splash = curr_file_path + "/dmd/Splash.dmd"
 		self.sound = procgame.sound.SoundController(self)
 		self.lampctrl = procgame.lamps.LampController(self)
 		self.logging_enabled = False
@@ -717,10 +719,10 @@ class Game(game.BasicGame):
 		self.trough.num_balls_to_save = self.ball_save.get_num_balls_to_save
 		self.ball_save.trough_enable_ball_save = self.trough.enable_ball_save
 
-		self.deadworld_test = DeadworldTest(self,200,font_tiny7)
+		self.deadworld_test = DeadworldTest(self,200,self.font_tiny7)
 
 		# Setup and instantiate service mode
-		self.service_mode = procgame.service.ServiceMode(self,100,font_tiny7,[self.deadworld_test])
+		self.service_mode = procgame.service.ServiceMode(self,100,self.font_tiny7,[self.deadworld_test])
 		#self.sound.register_sound('service_enter', shared_sound_path+"menu_in.wav")
 		#self.sound.register_sound('service_exit', shared_sound_path+"menu_out.wav")
 		#self.sound.register_sound('service_next', shared_sound_path+"next_item.wav")
@@ -740,13 +742,13 @@ class Game(game.BasicGame):
 		
 		# Setup fonts
 		self.fonts = {}
-		self.fonts['tiny7'] = font_tiny7
-		self.fonts['jazz18'] = font_jazz18
-		self.fonts['num_14x10'] = font_14x10
-		self.fonts['18x12'] = font_18x12
-		self.fonts['num_07x4'] = font_07x4
-		self.fonts['07x5'] = font_07x5
-		self.fonts['num_09Bx7'] = font_09Bx7
+		self.fonts['tiny7'] = self.font_tiny7
+		self.fonts['jazz18'] = self.font_jazz18
+		self.fonts['num_14x10'] = self.font_14x10
+		self.fonts['18x12'] = self.font_18x12
+		self.fonts['num_07x4'] = self.font_07x4
+		self.fonts['07x5'] = self.font_07x5
+		self.fonts['num_09Bx7'] = self.font_09Bx7
 
 		# Register lampshow files
 		self.lampshow_keys = []

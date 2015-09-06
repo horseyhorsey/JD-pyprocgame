@@ -1,3 +1,21 @@
+# hdDMD settings
+##########################################
+use_virtual_dmd_only: True
+dmd_grid_path: C:\P-ROC\FullColor-hdDMD-pyprocgame-master\
+dmd_no_frame: True
+dmd_fullscreen: False
+dmd_X: 5
+dmd_Y: 5
+desktop_dmd_scale: 3
+dmd_framerate: 15
+# Do not edit
+dmd_dots_w: 128
+dmd_dots_h: 32
+##########################################
+# Controller
+################################
+x_input_rumble: False
+################################ 
 font_path:
  - C:/P-ROC/shared/dmd
 config_path:
@@ -9,42 +27,34 @@ vp_game_map_file: /P-ROC/shared/config/vp_game_map.yaml
 
 keyboard_switch_map:
         1: startButton
-        z: flipperLwL
-        x: flipperLwR
-        t: outhole
-        2: leftTrough
-        3: leftRamp 
+        2: leftRamp
+        3: leftRampFull 
         4: rampDiverted
         5: cellarRamp
         6: rightOrbit
-        7: leftRampFull
-        8: rightE
-        9: vukswitch
-        0: henriettaSwitch
-        t: Target1
-        y: Target2
-        u: Target3
-        i: Target4
-        o: Target5
-        p: Target6
-        a: handDrop1
-        s: handDrop2
-        d: handDrop3
-        f: handDrop4
-        j: rampDiverted
-        v: down
-        b: up
-        n: enter
-        m: exit
-# all of this is for the hdDMD
-use_virtual_dmd_only: True
-dmd_grid_path: C:\P-ROC\FullColor-hdDMD-pyprocgame-master\
-dmd_dots_w: 128
-dmd_dots_h: 32
-dmd_X: 5
-dmd_Y: 5
-dmd_dot_filter: True
-dmd_no_frame: True
-dmd_fullscreen: False
-desktop_dmd_scale: 3
-dmd_framerate: 15
+        7: exit
+        8: down
+        9: up
+        0: enter
+        z: flipperLwL
+        x: flipperLwR
+        q: Evil
+        w: eVil
+        e: evIl
+        r: eviL
+        t: leftOutLane
+        y: leftReturn
+        u: righOutlane
+        i: leftReturn
+        o: henriettaSwitch
+        p: henriettaBig
+        a: Target1
+        s: Target2
+        d: Target3
+        f: Target4
+        g: Target5
+        h: Target6
+        v: handDrop1
+        b: handDrop2
+        n: handDrop3
+        m: handDrop4

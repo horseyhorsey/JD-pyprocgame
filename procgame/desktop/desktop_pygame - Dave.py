@@ -46,8 +46,6 @@ class Desktop():
 			self.dots_h = config.value_for_key_path(keypath='dmd_dots_h', default=32)
 			self.screen_scale = config.value_for_key_path(keypath='desktop_dmd_scale', default=2)
 			self.dot_filter = config.value_for_key_path(keypath='dmd_dot_filter', default=True)
-			self.dmd_X = config.value_for_key_path(keypath='dmd_X', default=0)
-			self.dmd_Y = config.value_for_key_path(keypath='dmd_Y', default=0)
 			self.no_frame= config.value_for_key_path(keypath='dmd_no_frame', default=True)
 			self.fullscreen = config.value_for_key_path(keypath='dmd_fullscreen', default=False)			
 			self.setup_window()
@@ -127,21 +125,16 @@ class Desktop():
 	# you'll need to change your displayController to width=192, height=96 and the same for all layers created
 
 	def setup_window(self):
-		pygame.mixer.pre_init(44100, -16, 2, 2048)
 		pygame.init()
 		#self.screen = pygame.display.set_mode((128*self.screen_multiplier, 32*self.screen_multiplier))
 		# self.screen = pygame.display.set_mode((self.dots_w*self.screen_scale, self.dots_h*self.screen_scale),pygame.OPENGL|pygame.FULLSCREEN|pygame.DOUBLEBUF)
 		# self.screen = pygame.display.set_mode((self.dots_w*self.screen_scale, self.dots_h*self.screen_scale),pygame.HWPALETTE|pygame.FULLSCREEN|pygame.DOUBLEBUF)
 		if(self.fullscreen==True):
 			self.screen = pygame.display.set_mode((self.dots_w*self.screen_scale, self.dots_h*self.screen_scale),pygame.HWPALETTE|pygame.FULLSCREEN|pygame.DOUBLEBUF)
-		elif (self.no_frame==True):
-			SetWindowPos = windll.user32.SetWindowPos
-			self.screen = pygame.display.set_mode((self.dots_w*self.screen_scale, self.dots_h*self.screen_scale),pygame.NOFRAME)
-			SetWindowPos(pygame.display.get_wm_info()['window'], -1, self.dmd_X, self.dmd_Y, 0, 0, 0x0001)
 		else:
 			SetWindowPos = windll.user32.SetWindowPos
-			self.screen = pygame.display.set_mode((self.dots_w*self.screen_scale, self.dots_h*self.screen_scale))
-			SetWindowPos(pygame.display.get_wm_info()['window'], -1, self.dmd_X, self.dmd_Y, 0, 0, 0x0001)
+			self.screen = pygame.display.set_mode((self.dots_w*self.screen_scale, self.dots_h*self.screen_scale)),pygame.pygame.NOFRAME
+			SetWindowPos(pygame.display.get_wm_info()['window'], -1, 0, 0, 0, 0, 0x0001)
 
 
 		print("****************")

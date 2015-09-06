@@ -1,0 +1,14 @@
+Audits: {Avg Ball Time: '0:33', Avg Extra Balls: 0, Avg Game Time: '1:44', Avg Score: 34849,
+  Balls Played: 9, Games Played: 3, Games Started: 3}
+ClassicHighScoreData:
+- {date: 'Sun Oct  3 17:38:46 2010', inits: GSS, score: 500000}
+- {date: 'Sun Oct  3 17:44:49 2010', inits: ASP, score: 400000}
+- {date: 'Sun Oct  3 16:22:47 2010', inits: JRP, score: 300000}
+- {date: 'Sun Oct  3 15:04:27 2010', inits: JAT, score: 200000}
+- {date: 'Sun Oct  3 22:05:01 2010', inits: JTW, score: 100000}
+CrimescenesHighScoreData:
+- {date: 'Sun Oct  3 17:38:46 2010', inits: JRP, score: 2}
+InnerLoopsHighScoreData:
+- {date: 'Sun Oct  3 17:38:46 2010', inits: GSS, score: 2}
+OuterLoopsHighScoreData:
+- {date: 'Sun Oct  3 17:38:46 2010', inits: ASP, score: 2}

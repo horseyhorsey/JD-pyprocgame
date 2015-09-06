@@ -12,6 +12,7 @@ from procgame import util
 from mode import *
 from pdb import PDBConfig, LED
 
+
 def config_named(name):
 	if not os.path.isfile(name): # If we cannot find this file easily, try searching the config_path:
 		config_paths = config.value_for_key_path('config_path', ['.'])
@@ -23,7 +24,6 @@ def config_named(name):
 		else:
 			return None
 	return yaml.load(open(name, 'r'))
-
 
 class GameController(object):
 	"""Core object representing the game itself.
@@ -63,14 +63,22 @@ class GameController(object):
 	balls_per_game = 3
 	"""Number of balls per game."""
 	game_data = {}
+
+	game_data_temp = {}
 	"""Contains high score and audit information.  That is, transient information specific to one game installation."""
 	user_settings = {}
 	"""Contains local game configuration, such as the volume."""
 
 	logger = None
 	""":class:`Logger` object instance; instantiated in :meth:`__init__` with the logger name "game"."""
+
+	# MJO: Virtual DMD w/o h/w DMD
+	use_virtual_dmd_only = False
+	frames_per_second = 60
 	
-	def __init__(self, machine_type):
+	"""Setting this to true in the config.yaml enables a virtual DMD without physical DMD events going to the PROC"""
+
+	def __init__(self, machine_type): 
 		super(GameController, self).__init__()
 		self.logger = logging.getLogger('game')
 		self.machine_type = pinproc.normalize_machine_type(machine_type)
@@ -78,6 +86,7 @@ class GameController(object):
 		self.proc.reset(1)
 		self.modes = ModeQueue(self)
 		self.t0 = time.time()
+		self.dmd_updates = 0
 	
 	def create_pinproc(self):
 		"""Instantiates and returns the class to use as the P-ROC device.
@@ -90,6 +99,8 @@ class GameController(object):
 		
 		If that key path does not exist then this method returns an instance of :class:`pinproc.PinPROC`.
 		"""
+		self.use_virtual_dmd_only = config.value_for_key_path('use_virtual_dmd_only', False)
+		self.frames_per_second = config.value_for_key_path('dmd_framerate', 60)
 		klass_name = config.value_for_key_path('pinproc_class', 'pinproc.PinPROC')
 		klass = util.get_class(klass_name)
 		return klass(self.machine_type)
@@ -158,7 +169,6 @@ class GameController(object):
 	
 	def end_ball(self):
 		"""Called by the implementor to notify the game that the current ball has ended."""
-
 		self.ball_end_time = time.time()
 		# Calculate ball time and save it because the start time
 		# gets overwritten when the next ball starts.
@@ -399,6 +409,7 @@ class GameController(object):
 		"""
 		self.game_data = {}
 		template = yaml.load(open(template_filename, 'r'))
+
 		if os.path.exists(user_filename):
 			self.game_data = yaml.load(open(user_filename, 'r'))
 		
@@ -409,11 +420,44 @@ class GameController(object):
 	
 	def save_game_data(self, filename):
 		"""Writes the game data to *filename*.  See :meth:`load_game_data`."""
-		if os.path.exists(filename):
-			os.remove(filename)
 		stream = file(filename, 'w')
 		yaml.dump(self.game_data, stream)
 
+	def enable_Upper_flippers(self, flipper,enable):
+		#return True
+		
+		"""Enables or disables the flippers AND bumpers."""
+
+		main_coil = self.coils[flipper+'Main']
+		if self.coils.has_key(flipper+'Hold'): 
+			style = 'wpc'
+			hold_coil = self.coils[flipper+'Hold']
+		else: 
+			style = 'stern'
+		switch_num = self.switches[flipper].number
+
+		drivers = []
+		if enable:
+			if style == 'wpc':
+				drivers += [pinproc.driver_state_pulse(main_coil.state(), main_coil.default_pulse_time)]
+				drivers += [pinproc.driver_state_pulse(hold_coil.state(), 0)]
+			else:
+				drivers += [pinproc.driver_state_patter(main_coil.state(), 2, 18, main_coil.default_pulse_time, True)]
+		self.proc.switch_update_rule(switch_num, 'closed_nondebounced', {'notifyHost':False, 'reloadActive':False}, drivers, len(drivers) > 0)
+			
+		drivers = []
+		if enable:
+			drivers += [pinproc.driver_state_disable(main_coil.state())]
+			if style == 'wpc':
+				drivers += [pinproc.driver_state_disable(hold_coil.state())]
+	
+		self.proc.switch_update_rule(switch_num, 'open_nondebounced', {'notifyHost':False, 'reloadActive':False}, drivers, len(drivers) > 0)
+
+		if not enable:
+			main_coil.disable()
+			if style == 'wpc':
+				hold_coil.disable()
+		
 	def enable_flippers(self, enable):
 		#return True
 		
@@ -573,7 +617,11 @@ class GameController(object):
 		"""Called by :meth:`run_loop` once per cycle to get the events to process during
 		this cycle of the run loop.
 		"""
-		return self.proc.get_events()
+		events = []
+		events.extend(self.proc.get_events())
+		if(self.use_virtual_dmd_only is True):		# MJO: changed to support fake DMD w/o h/w DMD
+			events.extend(self.get_virtualDMDevents())
+		return events
 
 	def tick_virtual_drivers(self):
 		for coil in self.coils:
@@ -583,7 +631,20 @@ class GameController(object):
 		for led in self.leds:
 			led.tick()
 	
-	def run_loop(self, min_seconds_per_cycle=None):
+	# MJO: added to support virtual DMD only (i.e., without hardware)	
+	last_dmd_event = 0
+	def get_virtualDMDevents(self):
+		""" Get all switch and DMD events since the last time this was called. """
+		events = []
+		now = time.time()
+		seconds_since_last_dmd_event = now - self.last_dmd_event
+		missed_dmd_events = min(int(seconds_since_last_dmd_event*float(self.frames_per_second)), 16)
+		if missed_dmd_events > 0:
+			self.last_dmd_event = now
+			events.extend([{'type':pinproc.EventTypeDMDFrameDisplayed, 'value':0}] * missed_dmd_events)
+		return events
+
+	def run_loop(self, min_seconds_per_cycle=None):#, fail_cb=None):
 		"""Called by the programmer to read and process switch events until interrupted."""
 		loops = 0
 		self.done = False
@@ -597,7 +658,7 @@ class GameController(object):
 				loops += 1
 				for event in self.get_events():
 					self.process_event(event)
-				self.tick()
+				self.tick()				
 				self.tick_virtual_drivers()
 				self.modes.tick()
 				if self.proc:
@@ -612,9 +673,23 @@ class GameController(object):
 					dt = time.time() - t0
 					if min_seconds_per_cycle > dt:
 						time.sleep(min_seconds_per_cycle - dt)
+		# except Exception, e:
+		# 	if(fail_cb!=None):
+		# 		fail_cb(e)
+		# 	raise
 		finally:
-			if loops != 0:
+			if loops != 0:				
 				dt = time.time()-self.t0
-				print "\nOverall loop rate: %0.3fHz\n" % (loops/dt)
+				self.logger.info("\nTotal Time: %0.3f Seconds",dt)
+				self.logger.info("Loops: " + str(loops))
+				self.logger.info("Overall loop rate: %0.3fHz", (loops/dt))
+				self.logger.info("DMD Updates: %s", str(self.dmd_updates))
+				self.logger.info("Frame rate: %0.3fFPS", (self.dmd_updates/dt))
+				self.logger.info("loops between dmd updates: %0.3f", (loops/self.dmd_updates))
 
-
+			#unload OSC server
+			try:
+				self.osc.OSC_shutdown()
+			except:
+				pass
+				
