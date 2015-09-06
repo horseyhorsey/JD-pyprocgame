@@ -1,10 +1,11 @@
 # hdDMD settings
 ##########################################
 use_virtual_dmd_only: True
-dmd_grid_path: C:\P-ROC\FullColor-hdDMD-pyprocgame-master\
+dmd_grid_path: ./config/
+dmd_dot_filter: True
 dmd_no_frame: True
 dmd_fullscreen: False
-dmd_X: 100
+dmd_X: 5
 dmd_Y: 5
 desktop_dmd_scale: 4
 dmd_framerate: 15
