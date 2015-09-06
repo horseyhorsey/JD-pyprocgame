@@ -41,18 +41,26 @@ class Desktop():
 		self.ctrl = 0
 		self.i = 0
 		self.key_events = []
+
+		self.colors = {'COLOR_BLUE' : 0x006cff,'COLOR_GREEN' : 0x6cff00,'COLOR_ORANGE' : 0xff691f,
+						'COLOR_PURPLE' : 0xc000ff,'COLOR_RED' : 0xff0000,'COLOR_WHITE' : 0xffffff	}
+
+
 		if 'pygame' in globals():
 			self.dots_w = config.value_for_key_path(keypath='dmd_dots_w', default=128)
 			self.dots_h = config.value_for_key_path(keypath='dmd_dots_h', default=32)
+			self.dmd_color = config.value_for_key_path(keypath='dmd_color', default='COLOR_WHITE')
 			self.screen_scale = config.value_for_key_path(keypath='desktop_dmd_scale', default=2)
 			self.dot_filter = config.value_for_key_path(keypath='dmd_dot_filter', default=True)
 			self.dmd_X = config.value_for_key_path(keypath='dmd_X', default=0)
 			self.dmd_Y = config.value_for_key_path(keypath='dmd_Y', default=0)
 			self.no_frame= config.value_for_key_path(keypath='dmd_no_frame', default=True)
-			self.fullscreen = config.value_for_key_path(keypath='dmd_fullscreen', default=False)			
+			self.fullscreen = config.value_for_key_path(keypath='dmd_fullscreen', default=False)
 			self.setup_window()
 		else:
 			print 'Desktop init skipping setup_window(); pygame does not appear to be loaded.'
+
+		print self.colors[self.dmd_color]
 
 		dmd_grid_path = config.value_for_key_path(keypath='dmd_grid_path', default='.')		
 		self.grid_image = pygame.surface.Surface((self.dots_w*10,self.dots_h*10),pygame.SRCALPHA)
@@ -71,6 +79,10 @@ class Desktop():
 			self.grid_image = pygame.transform.scale(self.grid_image, self.screen.get_size()).convert_alpha()
 		else:
 			self.draw = self.draw_no_dot_effect
+
+		self.tint_surface = pygame.surface.Surface(self.screen.get_size())
+		self.tint_surface.fill(self.colors[self.dmd_color])
+
 
 		self.add_key_map(pygame.locals.K_LSHIFT, 3)
 		self.add_key_map(pygame.locals.K_RSHIFT, 1)
@@ -165,8 +177,12 @@ class Desktop():
 		pygame.transform.scale(self.scratch_surface, self.screen.get_size(), self.screen)
 		#pygame.transform.smoothscale(self.scratch_surface, self.screen.get_size(), self.screen)
 
+		# Blend with the desired tint.
+		self.screen.blit(self.tint_surface,(0,0),None,pygame.BLEND_MULT)	
+
 		# Blit the grid on top to give it a more authentic DMD look.		
 		self.screen.blit(self.grid_image,(0,0))
+
 
 		##pygame.display.update()
 		pygame.display.flip()

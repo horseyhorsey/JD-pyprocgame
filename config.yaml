@@ -12,6 +12,9 @@ dmd_framerate: 15
 # Do not edit
 dmd_dots_w: 128
 dmd_dots_h: 32
+# Colors
+# COLOR_BLUE, COLOR_RED, COLOR_GREEN, COLOR_ORANGE, COLOR_WHITE, COLOR_PURPLE
+dmd_color: COLOR_RED
 ##########################################
 # Controller
 ################################
